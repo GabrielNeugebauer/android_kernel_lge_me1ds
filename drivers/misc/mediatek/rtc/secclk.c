@@ -108,21 +108,23 @@ int secclk_rtc_changed(int (*fp_read_rtc)(struct device *, struct rtc_time *), s
 
 static inline long difftime_copy_to_user(void __user *to, const void *from)
 {
-    struct diff_time_t st_diff_time = {0,};
-#ifdef CONFIG_COMPAT
-    unsigned int max_uint_val = ~0U;
-    st_diff_time.diff_val = *(compat_ulong_t *)from;
+    unsigned long diff = *(const unsigned long *)from;
 
-    if(*(unsigned long *)from > (unsigned long)max_uint_val)
+#ifdef CONFIG_COMPAT
+    if (is_compat_task())
     {
-        printk("difftime_copy_to_user : diff is larger than 32bit max!\n");
-        return -SECCLK_IOCTL_ERR_OVERFLOW;
+        compat_ulong_t diff32;
+
+        if (diff > (unsigned long)~0U)
+        {
+            printk("difftime_copy_to_user : diff is larger than 32bit max!\n");
+            return -SECCLK_IOCTL_ERR_OVERFLOW;
+        }
+        diff32 = diff;
+        return copy_to_user(to, &diff32, sizeof(diff32));
     }
-    return copy_to_user(compat_ptr((compat_uptr_t)to), &st_diff_time.diff_val, sizeof(compat_ulong_t));
-#else
-    st_diff_time.diff_val = *(unsigned long *)from;
-    return copy_to_user(to, &st_diff_time.diff_val, sizeof(unsigned long));
 #endif
+    return copy_to_user(to, &diff, sizeof(diff));
 }
 
 /*

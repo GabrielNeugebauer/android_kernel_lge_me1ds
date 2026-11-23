@@ -1981,7 +1981,7 @@ static ssize_t store_cpsopmode_value(struct device_driver *ddri, char *buf, size
 	}
 	else if (bma255_set_mode(bma255_i2c_client, (unsigned char) data) < 0)
 	{
-		SENSOR_ERR("invalid content: '%s', length = %d\n", buf, count);
+		SENSOR_ERR("invalid content: '%s', length = %zu\n", buf, count);
 	}
 
 	return count;
@@ -2018,7 +2018,7 @@ static ssize_t store_cpsrange_value(struct device_driver *ddri, char *buf, size_
 	}
 	if (bma255_set_range(bma255_i2c_client, (unsigned char) data) < 0)
 	{
-		SENSOR_ERR("invalid content: '%s', length = %d\n", buf, count);
+		SENSOR_ERR("invalid content: '%s', length = %zu\n", buf, count);
 	}
 
 	return count;
@@ -2054,7 +2054,7 @@ static ssize_t store_cpsbandwidth_value(struct device_driver *ddri, char *buf, s
 	}
 	if (bma255_set_bandwidth(bma255_i2c_client, (unsigned char) data) < 0)
 	{
-		SENSOR_ERR("invalid content: '%s', length = %d\n", buf, count);
+		SENSOR_ERR("invalid content: '%s', length = %zu\n", buf, count);
 	}
 
 	return count;
@@ -2215,7 +2215,7 @@ static ssize_t store_trace_value(struct device_driver *ddri, char *buf, size_t c
 	}
 	else
 	{
-		SENSOR_ERR("invalid content: '%s', length = %d\n", buf, count);
+		SENSOR_ERR("invalid content: '%s', length = %zu\n", buf, count);
 	}
 
 	return count;
@@ -2884,7 +2884,7 @@ static long bma255_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned 
 			}
 			else
 			{
-				SENSOR_LOG("GSENSOR_IOCTL_SET_ENABLE %d\n",(int)data);
+				SENSOR_LOG("GSENSOR_IOCTL_SET_ENABLE %u\n", enable);
 				if(enable == 1)
 				{
 					BMA255_SetPowerMode(obj_i2c_data->client, 1);

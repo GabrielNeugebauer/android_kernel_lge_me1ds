@@ -2111,14 +2111,14 @@ void DSI_set_cmdq_V3(DISP_MODULE_ENUM module, cmdqRecHandle cmdq, LCM_setting_ta
 				vm_cmdq.CM_DATA_0 = count+1;
 				DSI_OUTREG32(cmdq,&DSI_REG[0]->DSI_VM_CMD_CON, AS_UINT32(&vm_cmdq));
 
-				goto_addr = (UINT32)(&DSI_VM_CMD_REG[0]->data[0].byte0);
+				goto_addr = (unsigned long)(&DSI_VM_CMD_REG[0]->data[0].byte0);
 				mask_para = (0xFF<<((goto_addr&0x3)*8));
 				set_para = (cmd<<((goto_addr&0x3)*8));
 				DSI_MASKREG32(cmdq,goto_addr&(~0x3), mask_para, set_para);
 
 				for(i=0; i<count; i++)
 				{
-					goto_addr = (UINT32)(&DSI_VM_CMD_REG[0]->data[0].byte1) + i;
+					goto_addr = (unsigned long)(&DSI_VM_CMD_REG[0]->data[0].byte1) + i;
 					mask_para = (0xFF<<((goto_addr&0x3)*8));
 					set_para = (para_list[i]<<((goto_addr&0x3)*8));
 					DSI_MASKREG32(cmdq, goto_addr&(~0x3), mask_para, set_para);

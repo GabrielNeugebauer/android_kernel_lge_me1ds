@@ -16,7 +16,7 @@
 #include "eeprom.h"
 #include "eeprom_define.h"
 #include "GT24c32a.h"
-#include <asm/system.h>  // for SMP
+//#include <asm/system.h>  // for SMP
 #else
 
 #include <linux/i2c.h>
@@ -31,7 +31,7 @@
 #include "cam_cal_define.h"
 
 #include "DW9716_eeprom.h"
-#include <asm/system.h>  // for SMP
+//#include <asm/system.h>  // for SMP
 #endif
 //#define EEPROMGETDLT_DEBUG
 #define EEPROM_DEBUG

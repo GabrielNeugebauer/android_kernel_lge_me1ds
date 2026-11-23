@@ -185,7 +185,7 @@ void timerInit(void)
     g_timeOutTimer.function = ledTimeOutCallback;
 }
 
-static int constant_flashlight_ioctl(MUINT32 cmd, MUINT32 arg)
+static int constant_flashlight_ioctl(unsigned int cmd, unsigned long arg)
 {
     int iFlashType = (int)FLASHLIGHT_NONE;
     int i4RetValue = 0;
@@ -195,17 +195,17 @@ static int constant_flashlight_ioctl(MUINT32 cmd, MUINT32 arg)
     ior_shift = cmd - (_IOR(FLASHLIGHT_MAGIC,0, int));
     iow_shift = cmd - (_IOW(FLASHLIGHT_MAGIC,0, int));
     iowr_shift = cmd - (_IOWR(FLASHLIGHT_MAGIC,0, int));
-    PK_DBG("constant_flashlight_ioctl() line=%d ior_shift=%d, iow_shift=%d iowr_shift=%d arg=%d\n", __LINE__, ior_shift, iow_shift, iowr_shift, arg);
+    PK_DBG("constant_flashlight_ioctl() line=%d ior_shift=%d, iow_shift=%d iowr_shift=%d arg=%lu\n", __LINE__, ior_shift, iow_shift, iowr_shift, arg);
 
     switch(cmd)
     {
         case FLASH_IOC_SET_TIME_OUT_TIME_MS:
-            PK_DBG("FLASH_IOC_SET_TIME_OUT_TIME_MS: %d\n",arg);
+            PK_DBG("FLASH_IOC_SET_TIME_OUT_TIME_MS: %lu\n", arg);
             g_timeOutTimeMs=arg;
             break;
 
         case FLASH_IOC_SET_DUTY:
-            PK_DBG("FLASHLIGHT_DUTY: %d\n",arg);
+            PK_DBG("FLASHLIGHT_DUTY: %lu\n", arg);
             //[LGE_UPDATE_S][yonghwan.lym@lge.com][2014-06-10] Add Main Flash current(4 Step)
             #if 0
             if (KD_STROBE_HIGH_CURRENT_WIDTH == arg)
@@ -233,11 +233,11 @@ static int constant_flashlight_ioctl(MUINT32 cmd, MUINT32 arg)
             break;
 
         case FLASH_IOC_SET_STEP:
-            PK_DBG("FLASH_IOC_SET_STEP: %d\n", arg);
+            PK_DBG("FLASH_IOC_SET_STEP: %lu\n", arg);
             break;
 
         case FLASH_IOC_SET_ONOFF:
-            PK_DBG("FLASHLIGHT_ONOFF: %d\n", arg);
+            PK_DBG("FLASHLIGHT_ONOFF: %lu\n", arg);
             if (arg==1)
             {
                 if(g_timeOutTimeMs!=0)

@@ -291,8 +291,8 @@ static int __init lge_panic_handler_early_init(void)
 	res->end = (LGE_BSP_CRASH_LOG_PHY_ADDR + LGE_BSP_CRASH_LOG_SIZE - 1);
 #endif
 
-	printk( "CRASH LOG START ADDR : 0x%x\n", res->start);
-	printk( "CRASH LOG END ADDR   : 0x%x\n", res->end);
+	printk( "CRASH LOG START ADDR : %pa\n", &res->start);
+	printk( "CRASH LOG END ADDR   : %pa\n", &res->end);
 
 	buffer_size 	= res->end - res->start + 1;
 	start 			= res->start;
