@@ -23,7 +23,7 @@ jobs:
           mkdir -p out
           docker run --rm -v "$GITHUB_WORKSPACE:/w" -w /w/src ubuntu:18.04 bash -ec '
             apt-get update -qq
-            DEBIAN_FRONTEND=noninteractive apt-get install -y -qq bc bison flex make gcc libc6-dev libssl-dev python perl cpio lz4 >/dev/null
+            DEBIAN_FRONTEND=noninteractive apt-get install -y -qq bc bison flex make gcc libc6-dev libssl-dev python perl cpio liblz4-tool >/dev/null
             export ARCH=arm64 CROSS_COMPILE=/w/tc/bin/aarch64-linux-android-
             make O=/w/out me1ds_defconfig
             make O=/w/out -j"$(nproc)" 2>&1 | tee /w/out/build.log; exit ${PIPESTATUS[0]}
