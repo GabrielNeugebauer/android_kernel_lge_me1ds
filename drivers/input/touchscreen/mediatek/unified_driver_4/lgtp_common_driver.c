@@ -1723,12 +1723,15 @@ static int touch_probe(struct platform_device *platform_dev)
 
 	/* Trigger firmware upgrade if needed */
 	if (pDriverData->icFwInfo.isOfficial || !pDriverData->icFwInfo.isOfficial) {
-		if (pDriverData->binFwInfo.version != pDriverData->icFwInfo.version) {
-			pDriverData->useDefaultFirmware = TOUCH_TRUE;
-			queue_delayed_work(touch_wq, &pDriverData->work_upgrade, 0);
-		} else {
-			queue_delayed_work(touch_wq, &pDriverData->work_init, 0);
-		}
+		/*
+		 * Never reflash the touch IC automatically: the default bin is
+		 * per panel vendor and a mismatch would downgrade or cross-flash
+		 * it. Use the sysfs "upgrade"/"rewrite_bin_fw" nodes on purpose.
+		 */
+		if (pDriverData->binFwInfo.version != pDriverData->icFwInfo.version)
+			TOUCH_WARN("IC firmware 0x%02X differs from bin 0x%02X, not upgrading\n",
+				   pDriverData->icFwInfo.version, pDriverData->binFwInfo.version);
+		queue_delayed_work(touch_wq, &pDriverData->work_init, 0);
 	}
 
 	return TOUCH_SUCCESS;
