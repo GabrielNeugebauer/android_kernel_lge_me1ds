@@ -181,7 +181,7 @@ static long EEPROM_Ioctl(
 #endif
 
     EEPROMDB("[COMMON_EEPROM]1 In to IOCTL %x %x\n",_IOC_DIR(a_u4Command),_IOC_WRITE);
-    EEPROMDB("[COMMON_EEPROM]2 In to IOCTL %x %x\n",CAM_CALIOC_G_READ,CAM_CALIOC_S_WRITE);
+    EEPROMDB("[COMMON_EEPROM]2 In to IOCTL %lx %lx\n", (unsigned long)CAM_CALIOC_G_READ, (unsigned long)CAM_CALIOC_S_WRITE);
 
 
     if(_IOC_NONE == _IOC_DIR(a_u4Command))

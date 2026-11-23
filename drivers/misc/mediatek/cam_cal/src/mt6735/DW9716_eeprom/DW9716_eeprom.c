@@ -448,7 +448,7 @@ static long EEPROM_Ioctl(
         EEPROMDB("DW9716EEPROM] ioctl allocate mem failed\n");
         return -ENOMEM;
     }
-     EEPROMDB("[DW9716EEPROM] init Working buffer address 0x%8x  command is 0x%8x\n", (u32)pWorkingBuff, (u32)a_u4Command);
+     EEPROMDB("[DW9716EEPROM] init Working buffer address %p  command is 0x%8x\n", pWorkingBuff, (u32)a_u4Command);
 
 
     if(copy_from_user((u8*)pWorkingBuff ,  (u8*)ptempbuf->pu1Params, ptempbuf->u4Length))
@@ -487,7 +487,7 @@ static long EEPROM_Ioctl(
 #endif
             EEPROMDB("[DW9716EEPROM] offset %x \n", ptempbuf->u4Offset);
             EEPROMDB("[DW9716EEPROM] length %x \n", ptempbuf->u4Length);
-            EEPROMDB("[DW9716EEPROM] Before read Working buffer address 0x%8x \n", (u32)pWorkingBuff);
+            EEPROMDB("[DW9716EEPROM] Before read Working buffer address %p \n", pWorkingBuff);
 
 #if 0
             //iReadReg(0x0770 , u8 * a_puBuff , u16 i2cId);
@@ -711,7 +711,7 @@ static long EEPROM_Ioctl(
     {
         //copy data to user space buffer, keep other input paremeter unchange.
         EEPROMDB("[DW9716EEPROM] to user length %d \n", ptempbuf->u4Length);
-        EEPROMDB("[DW9716EEPROM] to user  Working buffer address 0x%8x \n", (u32)pWorkingBuff);
+        EEPROMDB("[DW9716EEPROM] to user  Working buffer address %p \n", pWorkingBuff);
         if(copy_to_user((u8 __user *) ptempbuf->pu1Params , (u8 *)pWorkingBuff , ptempbuf->u4Length))
         {
             kfree(pBuff);
