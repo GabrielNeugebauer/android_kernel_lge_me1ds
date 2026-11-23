@@ -30,6 +30,7 @@ obj-$(CONFIG_SWP_EMULATE)	+= swp_emulate.o
 arm64-obj-$(CONFIG_ARM_CPU_TOPOLOGY)  += topology.o
 arm64-obj-$(CONFIG_KGDB)		+= kgdb.o
 obj-y					+= $(arm64-obj-y) vdso/
+obj-$(CONFIG_ME1DS_BOOT_STRIPES)	+= me1ds_bootdbg.o
 obj-m					+= $(arm64-obj-m)
 head-y					:= head.o
 extra-y					:= $(head-y) vmlinux.lds

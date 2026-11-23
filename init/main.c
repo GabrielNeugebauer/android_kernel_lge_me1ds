@@ -76,6 +76,11 @@
 #include <linux/elevator.h>
 #include <linux/sched_clock.h>
 #include <linux/random.h>
+#ifdef CONFIG_ARM64
+#include <asm/me1ds_bootdbg.h>
+#else
+static inline void me1ds_boot_stripe(int n) { }
+#endif
 #include <linux/time_log.h>
 
 #include <asm/io.h>
@@ -657,6 +662,7 @@ asmlinkage void __init start_kernel(void)
 	sort_main_extable();
 	trap_init();
 	mm_init();
+	me1ds_boot_stripe(2);
 
 	/*
 	 * Set up the scheduler prior starting any interrupts (such as the
@@ -685,6 +691,7 @@ asmlinkage void __init start_kernel(void)
 	softirq_init();
 	timekeeping_init();
 	time_init();
+	me1ds_boot_stripe(3);
 	sched_clock_postinit();
 	profile_init();
 	call_function_init();
@@ -700,6 +707,7 @@ asmlinkage void __init start_kernel(void)
 	 * this. But we do want output early, in case something goes wrong.
 	 */
 	console_init();
+	me1ds_boot_stripe(4);
 	if (panic_later)
 		panic(panic_later, panic_param);
 
@@ -947,6 +955,7 @@ static noinline void __init kernel_init_freeable(void);
 
 static int __ref kernel_init(void *unused)
 {
+	me1ds_boot_stripe(5);
 	kernel_init_freeable();
 	/* need to finish all async __init code before freeing the memory */
 	async_synchronize_full();
@@ -954,12 +963,14 @@ static int __ref kernel_init(void *unused)
 	mark_rodata_ro();
 	system_state = SYSTEM_RUNNING;
 	numa_default_policy();
+	me1ds_boot_stripe(6);
 
 	flush_delayed_fput();
 
 	log_boot("Kernel_init_done");
 	
 	if (ramdisk_execute_command) {
+		me1ds_boot_stripe(7);
 		if (!run_init_process(ramdisk_execute_command))
 			return 0;
 		pr_err("Failed to execute %s\n", ramdisk_execute_command);

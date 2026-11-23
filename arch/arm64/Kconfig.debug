@@ -30,4 +30,12 @@ config PID_IN_CONTEXTIDR
 	  instructions during context switch. Say Y here only if you are
 	  planning to use hardware trace tools with this kernel.
 
+config ME1DS_BOOT_STRIPES
+	bool "Paint boot-progress stripes on the LG K130 framebuffer"
+	help
+	  Debug aid for bringing up the arm64 kernel on the LG K130 (me1ds),
+	  which has no serial console. Each early boot stage paints a white
+	  stripe into the framebuffer lk left on screen (video-mode panel),
+	  so how far the boot got can be read off the display.
+
 endmenu
