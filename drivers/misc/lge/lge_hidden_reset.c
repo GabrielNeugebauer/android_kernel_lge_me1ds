@@ -39,6 +39,41 @@ static int gen_hidden_reset(const char *val, struct kernel_param *kp)
 static int dummy_arg;
 module_param_call(gen_hidden_reset, gen_hidden_reset, param_get_bool, &dummy_arg, S_IWUSR | S_IRUGO);
 
+#ifdef CONFIG_ARM64
+/*
+ * arm32 maps the LG RAM console at the fixed VA LGE_RAM_CONSOLE_MEM_VBASE via
+ * an iotable entry in mach core.c, which arm64 does not have. Map the same
+ * physical region (above the DRAM given to the kernel) with ioremap instead.
+ */
+static void __iomem *lge_ram_console_va;
+
+static int __init lge_ram_console_map(void)
+{
+	lge_ram_console_va = ioremap(LGE_BSP_RAM_CONSOLE_PHY_ADDR, LGE_BSP_RAM_CONSOLE_SIZE);
+	if (!lge_ram_console_va)
+		pr_err("%s: failed to map LG RAM console at %#x\n", __func__,
+		       (unsigned int)LGE_BSP_RAM_CONSOLE_PHY_ADDR);
+	return 0;
+}
+arch_initcall(lge_ram_console_map);
+
+volatile u32 *lge_boot_magic_ptr(void)
+{
+	if (!lge_ram_console_va)
+		return NULL;
+	return (volatile u32 *)(lge_ram_console_va + LGE_RAM_CONSOLE_MEM_SIZE - 32);
+}
+#else
+volatile u32 *lge_boot_magic_ptr(void)
+{
+#if defined (CONFIG_LGE_ONE_BIN_MEMORY) /* ONE_BIN_MEMORY */
+	return (volatile u32 *)(LGE_RAM_CONSOLE_MEM_VBASE + LGE_RAM_CONSOLE_MEM_SIZE - 32);
+#else
+	return (volatile u32 *)(LGE_RAM_CONSOLE_MEM_VBASE + 0x3E000 - 32); /* jjm_sram */
+#endif
+}
+#endif
+
 int lge_save_boot_reason(unsigned long reason, unsigned long extra1, unsigned long extra2)
 {
 	//
@@ -55,16 +90,15 @@ int lge_save_boot_reason(unsigned long reason, unsigned long extra1, unsigned lo
 	//
 
 	//volatile u32 *lge_boot_magic_number 	= (volatile u32*)(INTER_SRAM + 0x30000 - 32);
-	#if defined (CONFIG_LGE_ONE_BIN_MEMORY) /* ONE_BIN_MEMORY */
-	volatile u32 *lge_boot_magic_number = (volatile u32*)(LGE_RAM_CONSOLE_MEM_VBASE + LGE_RAM_CONSOLE_MEM_SIZE - 32);
-	#else
-	volatile u32 *lge_boot_magic_number = (volatile u32*)(LGE_RAM_CONSOLE_MEM_VBASE + 0x3E000 - 32); /* jjm_sram */
-	#endif
+	volatile u32 *lge_boot_magic_number = lge_boot_magic_ptr();
 	volatile u32 *lge_boot_reason 		 	= lge_boot_magic_number + 1;	// next 4 byte
 	volatile u32 *lge_boot_reason_extra1 	= lge_boot_reason + 1;			// next 4 byte
 	volatile u32 *lge_boot_reason_extra2 	= lge_boot_reason_extra1 + 1;	// next 4 byte
 
 	unsigned long flags;
+
+	if (!lge_boot_magic_number)
+		return -ENODEV;
 
 	spin_lock_irqsave(&lge_hidden_reset_spin_lock, flags);
 
@@ -85,16 +119,12 @@ int lge_save_boot_reason(unsigned long reason, unsigned long extra1, unsigned lo
 unsigned long lge_get_boot_reason(unsigned long *pExtra1, unsigned long * pExtra2)
 {
 	//volatile u32 *lge_boot_magic_number = (volatile u32*)(INTER_SRAM + 0x30000 - 32);
-	#if defined (CONFIG_LGE_ONE_BIN_MEMORY) /* ONE_BIN_MEMORY */
-	volatile u32 *lge_boot_magic_number = (volatile u32*)(LGE_RAM_CONSOLE_MEM_VBASE + LGE_RAM_CONSOLE_MEM_SIZE - 32);
-	#else
-	volatile u32 *lge_boot_magic_number = (volatile u32*)(LGE_RAM_CONSOLE_MEM_VBASE + 0x3E000 - 32); /* jjm_sram */
-	#endif
+	volatile u32 *lge_boot_magic_number = lge_boot_magic_ptr();
 	volatile u32 *lge_boot_reason 		 = lge_boot_magic_number + 1; // next 4 byte
 	volatile u32 *lge_boot_reason_extra1 = lge_boot_reason + 1; 			// next 4 byte
 	volatile u32 *lge_boot_reason_extra2 = lge_boot_reason_extra1 + 1; 	// next 4 byte
 
-	if (*lge_boot_magic_number == LGE_BOOT_REASON_MAGIC_CODE) {
+	if (lge_boot_magic_number && *lge_boot_magic_number == LGE_BOOT_REASON_MAGIC_CODE) {
 		if (pExtra1 != NULL) {
 			*pExtra1 = *lge_boot_reason_extra1;
 		}

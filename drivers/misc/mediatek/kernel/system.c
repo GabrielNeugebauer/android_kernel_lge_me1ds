@@ -18,11 +18,7 @@ void arch_reset(char mode, const char *cmd)
 	char reboot = 0;
 #ifdef CONFIG_LGE_HANDLE_PANIC
 	//volatile u32 *lge_boot_magic_number = (volatile u32*)(INTER_SRAM + 0x30000 - 32);
-	#if defined (CONFIG_LGE_ONE_BIN_MEMORY) /* ONE_BIN_MEMORY */
-	volatile u32 *lge_boot_magic_number = (volatile u32*)(LGE_RAM_CONSOLE_MEM_VBASE + LGE_RAM_CONSOLE_MEM_SIZE - 32);
-	#else
-	volatile u32 *lge_boot_magic_number = (volatile u32*)(LGE_RAM_CONSOLE_MEM_VBASE + 0x3E000 - 32); /* jjm_sram */
-	#endif
+	volatile u32 *lge_boot_magic_number = lge_boot_magic_ptr();
 	volatile u32 *lge_boot_reason       = lge_boot_magic_number + 1; // next 4 byte
 #else
 	int res = 0;
@@ -72,7 +68,8 @@ void arch_reset(char mode, const char *cmd)
     }
 
 #ifdef CONFIG_LGE_HANDLE_PANIC
-	if (*lge_boot_magic_number == LGE_BOOT_REASON_MAGIC_CODE && *lge_boot_reason == LGE_BOOT_KERNEL_CRASH)
+	if (lge_boot_magic_number &&
+	    *lge_boot_magic_number == LGE_BOOT_REASON_MAGIC_CODE && *lge_boot_reason == LGE_BOOT_KERNEL_CRASH)
 	{
 		if (hreset_enable == 0)
 		{
@@ -84,8 +81,10 @@ void arch_reset(char mode, const char *cmd)
 		}
 	}
 
-	printk("%s : *lge_boot_magic_number = 0x%x, *lge_boot_reason = 0x%x\n", __func__, *lge_boot_magic_number, *lge_boot_reason);
-	printk("%s : lge_boot_magic_number = 0x%p, lge_boot_reason = 0x%p\n", __func__, lge_boot_magic_number, lge_boot_reason);
+	if (lge_boot_magic_number) {
+		printk("%s : *lge_boot_magic_number = 0x%x, *lge_boot_reason = 0x%x\n", __func__, *lge_boot_magic_number, *lge_boot_reason);
+		printk("%s : lge_boot_magic_number = 0x%p, lge_boot_reason = 0x%p\n", __func__, lge_boot_magic_number, lge_boot_reason);
+	}
 
 	wdt_arch_reset(reboot);
 #else
