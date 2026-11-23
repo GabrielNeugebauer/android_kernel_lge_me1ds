@@ -100,6 +100,7 @@ extern unsigned long LGE_BSP_MEM_MAX_PHY_ADDR;
 #define LGE_BOOT_FOTA_REBOOT                0x77665566
 
 int lge_save_boot_reason(unsigned long reason, unsigned long extra1, unsigned long extra2);
+volatile u32 *lge_boot_magic_ptr(void);
 unsigned long lge_get_boot_reason(unsigned long *pExtra1, unsigned long * pExtra2);
 #endif
 

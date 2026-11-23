@@ -588,7 +588,7 @@ restore_end:
  * module init function
  */
 
-#if 1 /* jjm_t32 */
+#ifndef CONFIG_ARM64 /* jjm_t32: TRACE32 flag lives in arm32 mt-smp.c */
 extern atomic_t trace32_on;
 #endif
 
@@ -598,7 +598,7 @@ static int __init hps_init(void)
 
     hps_warn("hps_init\n");
 
-    #if 1 /* jjm_t32 */
+    #ifndef CONFIG_ARM64 /* jjm_t32 */
     if(atomic_read(&trace32_on) == 1)
         hps_ctxt.enabled = 0;
     #endif
