@@ -26,7 +26,7 @@ jobs:
             DEBIAN_FRONTEND=noninteractive apt-get install -y -qq bc bison flex make gcc libc6-dev libssl-dev python perl cpio liblz4-tool >/dev/null
             export ARCH=arm64 CROSS_COMPILE=/w/tc/bin/aarch64-linux-android-
             make O=/w/out me1ds_defconfig
-            make O=/w/out -j"$(nproc)" 2>&1 | tee /w/out/build.log; exit ${PIPESTATUS[0]}
+            make O=/w/out -k -j"$(nproc)" 2>&1 | tee /w/out/build.log; exit ${PIPESTATUS[0]}
           '
           ls -la out/arch/arm64/boot/
 

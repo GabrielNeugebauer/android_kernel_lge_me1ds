@@ -26,6 +26,25 @@
 
 #define ATAG_LGE_BOOTLOG	0xc0e0c0e0
 
+#ifdef CONFIG_ARM64
+/* arm64 has no ATAGs; lk passes the same tag layout via /chosen "atag,logbuf" */
+struct tag_header {
+	u32 size;
+	u32 tag;
+};
+
+struct tag_revision {
+	u32 rev;
+};
+
+struct tag {
+	struct tag_header hdr;
+	union {
+		struct tag_revision revision;
+	} u;
+};
+#endif
+
 struct log_buffer {
 	uint32_t    sig;
 	uint32_t    start;
