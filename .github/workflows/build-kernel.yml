@@ -1,0 +1,43 @@
+name: Build arm64 kernel (me1ds)
+
+on:
+  push:
+    branches: ["feat/**"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Fetch GCC 4.9 aarch64 toolchain
+        run: |
+          git clone --depth 1 -b android-9.0.0_r61 \
+            https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 tc
+
+      - name: Build in Ubuntu 18.04
+        run: |
+          mkdir -p out
+          docker run --rm -v "$GITHUB_WORKSPACE:/w" -w /w/src ubuntu:18.04 bash -ec '
+            apt-get update -qq
+            DEBIAN_FRONTEND=noninteractive apt-get install -y -qq bc bison flex make gcc libc6-dev libssl-dev python perl cpio lz4 >/dev/null
+            export ARCH=arm64 CROSS_COMPILE=/w/tc/bin/aarch64-linux-android-
+            make O=/w/out me1ds_defconfig
+            make O=/w/out -j"$(nproc)" 2>&1 | tee /w/out/build.log; exit ${PIPESTATUS[0]}
+          '
+          ls -la out/arch/arm64/boot/
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: me1ds-arm64-kernel
+          if-no-files-found: warn
+          path: |
+            out/arch/arm64/boot/Image.gz-dtb
+            out/arch/arm64/boot/dts/*.dtb
+            out/.config
+            out/build.log

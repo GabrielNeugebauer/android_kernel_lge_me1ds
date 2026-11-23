@@ -8,7 +8,7 @@
 
 / {
 	model = "MT6735M";
-	compatible = "mediatek,MT6735M";
+	compatible = "mediatek,MT6735";
 	interrupt-parent = <&gic>;
 	#address-cells = <2>;
 	#size-cells = <2>;
@@ -93,12 +93,14 @@
             cpu-release-addr = <0x0 0x40000200>;
             clock-frequency = <1000000000>;
         };
+
 	};
 
 	memory@00000000 {
 		device_type = "memory";
 		reg = <0 0x40000000 0 0x40000000>;
 	};
+
 
     reserved-memory {
         #address-cells = <2>;
@@ -108,7 +110,7 @@
         /* reserve 192KB at DRAM start + 48MB */
         ATF-reserved-memory {
             compatible = "ATF-reserved-memory";
-            no-map;
+            no-map;                        
             reg = <0 0x43000000 0 0x30000>;
         };
 
@@ -251,15 +253,14 @@
 			mapping_table_entry = <0>;
 		};
 
-		SLEEP@0x10006000 {
-			compatible = "mediatek,SLEEP";
-			reg = <0x10006000 0x1000>;
-			interrupts = <0 165 0x8>,
-			             <0 166 0x8>,
-			             <0 167 0x8>,
-			             <0 168 0x8>;
-		};
-
+        SLEEP@0x10006000 {
+            compatible = "mediatek,SLEEP";
+            reg = <0x10006000 0x1000>;
+            interrupts = <0 165 0x8>,
+                         <0 166 0x8>,
+                         <0 167 0x8>,
+                         <0 168 0x8>;
+        };
 
 		DEVAPC_AO@0x10007000 {
 			compatible = "mediatek,DEVAPC_AO";
@@ -275,6 +276,16 @@
 		RSVD@0x10009000 {
 			compatible = "mediatek,RSVD";
 			reg = <0x10009000 0x1000>;
+		};
+
+		CLDMA_AO_TOP_AP@0x1000A000 {
+			compatible = "mediatek,CLDMA_AO_TOP_AP";
+			reg = <0x1000A000 0x1000>;
+		};
+
+		CLDMA_AO_TOP_MD@0x1000B000 {
+			compatible = "mediatek,CLDMA_AO_TOP_MD";
+			reg = <0x1000B000 0x1000>;
 		};
 
         BAT_METTER {
@@ -599,7 +610,6 @@
 			interrupts = <0 112 0x8>;
 		};
 
-
 		AUXADC@0x11001000 {
 			compatible = "mediatek,AUXADC";
 			reg = <0x11001000 0x1000>;
@@ -640,17 +650,6 @@
 			interrupts = <0 77 0x8>;
 		};
 
-        G3D_CONFIG@0x13000000 {
-            compatible = "mediatek,G3D_CONFIG";
-            reg = <0x13000000 0x1000>;
-        };
-
-
-        IMGSYS@0x15000000 {
-            compatible = "mediatek,IMGSYS";
-            reg = <0x15000000 0x1000>;
-        };
-
 		I2C0@0x11007000 {
 			compatible = "mediatek,I2C0";
 			cell-index = <0>;
@@ -682,6 +681,18 @@
 			interrupts = <0 87 0x8>,
 			             <0 102 0x8>;
 		};
+
+
+        G3D_CONFIG@0x13000000 {
+            compatible = "mediatek,G3D_CONFIG";
+            reg = <0x13000000 0x1000>;
+        };
+
+
+        IMGSYS@0x15000000 {
+            compatible = "mediatek,IMGSYS";
+            reg = <0x15000000 0x1000>;
+        };
 
 		SPI1@0x1100A000 {
 			cell-index = <0>;
@@ -732,7 +743,7 @@
             <0x10000000 0x2000>,  /*TOPCKGEN_BASE             */
             <0x10006000 0x1000>;  /*SPM_BASE                  */
 	    interrupts = <0 227 0x8>, /*BGF_EINT                  */
-	                 <0 225 0x8>; /*WDT_EINT                  */
+	    			 <0 225 0x8>; /*WDT_EINT                  */
     };
 		BTCVSD@0x18000000 {
 			compatible = "mediatek,audio_bt_cvsd";
@@ -801,10 +812,10 @@
 			audmosi-gpio = <145 0>;
 			vowclk-gpio = <148 0>;
 			extspkamp-gpio = <117 0>;
-			i2s1clk-gpio = <80 0>;
-			i2s1dat-gpio = <78 0>;
-			i2s1mclk-gpio = <9 0>;
-			i2s1ws-gpio = <79 0>;
+			i2s1clk-gpio = <135 0>;
+			i2s1dat-gpio = <137 0>;
+			i2s1mclk-gpio = <134 0>;
+			i2s1ws-gpio = <136 0>;
 		};
 
 		MT_SOC_UL1_PCM@0x11220000 {
@@ -885,10 +896,6 @@
 
 		MT_SOC_ROUTING_PCM@0x11220000 {
 			compatible = "mediatek,mt_soc_pcm_routing";
-			i2s1clk-gpio = <7 6>;
-			i2s1dat-gpio = <5 6>;
-			i2s1mclk-gpio = <9 6>;
-			i2s1ws-gpio = <6 6>;			
 		};
 
 		MT_SOC_VOICE_MD2_BT@0x11220000 {
@@ -969,7 +976,6 @@
 			clock-frequency = <450000000>;
 		};
 
-
 		MMSYS_CONFIG@0x14000000 {
 			compatible = "mediatek,MMSYS_CONFIG";
 			reg = <0x14000000 0x1000>;
@@ -1036,12 +1042,7 @@
                   <0x14018000 0x1000>,      /*MIPITX0,real chip would use this:<0x14017000 0x1000>;*/
 			      <0x10206000 0x1000>,  /*DISP_CONFIG2*/
 			      <0x10210000 0x1000>,  /*DISP_CONFIG3*/
-			      <0x10211A70 0x000C>,  /*DISP_DPI_IO_DRIVING1 */
-			      <0x10211974 0x000C>,  /*DISP_DPI_IO_DRIVING2 */
-			      <0x10211B70 0x000C>,  /*DISP_DPI_IO_DRIVING3 */
-			      <0x10206044 0x000C>,  /*DISP_DPI_USE */
-			      <0x10206514 0x000C>,  /*DISP_DPI_USE_PERMISSION */
-			      <0x10206558 0x000C>,  /*DISP_DPI_USE_KEY */
+			      <0x100010F0 0x1000>,  /*DISP_DPI_IO_DRIVING */
 			      <0x102100A0 0x1000>,  /*DISP_TVDPLL_CFG6 */
 			      <0x10209270 0x1000>,  /*DISP_TVDPLL_CON0 */
 			      <0x10209274 0x1000>,  /*DISP_TVDPLL_CON1 */
@@ -1147,9 +1148,6 @@
 			interrupts = <0 203 0x8>;
 		};
 
-		HDMI@0 {
-			compatible = "mediatek,HDMI";
-		};
 		DSI0@0x14012000 {
 			compatible = "mediatek,DSI0";
 			reg = <0x14012000 0x1000>;
@@ -1187,6 +1185,7 @@
 				<0x15001000 0x1000>;  /* LARB 2 */  
 		};
 		
+
 		MIPI_TX_CONFIG@0x14018000 {
 			compatible = "mediatek,MIPI_TX_CONFIG";
 			reg = <0x14018000 0x1000>;
@@ -1200,6 +1199,13 @@
 			interrupts = <0 182 0x8>, /* SENINF */
                                      <0 183 0x8>; /* CAM0 */
 		};
+                /*for sysram dev and pipemgr dev*/
+                ISP_SYSR@0x15000000 {
+			compatible = "mediatek,ISP_SYSR";
+		};
+                ISP_PIPEM@0x15000000 {
+			compatible = "mediatek,ISP_PIPEM";
+		};
 		KD_CAMERA_HW1@0x15008000 {
                         compatible = "mediatek,CAMERA_HW";
                         reg = <0x15008000 0x1000>;  /* SENINF_ADDR */
@@ -1208,14 +1214,6 @@
                         compatible = "mediatek,CAMERA_HW2";
                         reg = <0x15008000 0x1000>;  /* SENINF_ADDR */
                 };
-
-                /*for sysram dev and pipemgr dev*/
-                ISP_SYSR@0x15000000 {
-			compatible = "mediatek,ISP_SYSR";
-		};
-                ISP_PIPEM@0x15000000 {
-			compatible = "mediatek,ISP_PIPEM";
-		};
 		SENINF_TOP@0x15008000 {
 			compatible = "mediatek,SENINF_TOP";
 			reg = <0x15008000 0x1000>;
@@ -1251,10 +1249,6 @@
 			interrupts = <0 178 0x8>;
 		};
 
-		IMGSYS_CONFG@0x15000000 {
-			compatible = "mediatek,IMGSYS_CONFG";
-			reg = <0x15000000 0x1000>;
-		};
 
 		VDEC_GCON@0x16000000 {
 			compatible = "mediatek,VDEC_GCON";
@@ -1282,14 +1276,14 @@
 		};
 	};
 
-	psci {
-        	compatible  = "arm,psci";
-		method      = "smc";
-		cpu_suspend = <0x84000001>;
-		cpu_off     = <0x84000002>;
-		cpu_on      = <0x84000003>;
-		affinity_info = <0x84000004>;
-	};
+    psci {
+        compatible  = "arm,psci";
+        method      = "smc";
+        cpu_suspend = <0x84000001>;
+        cpu_off     = <0x84000002>;
+        cpu_on      = <0x84000003>;
+        affinity_info = <0x84000004>;
+    };
 
 /* sensor part */
 		hwmsensor@0 {
@@ -1343,13 +1337,7 @@
 		interrupts = <0 248 0x1>;
 	};
 
-	mt8193ckgen@0 {
-		compatible = "mediatek,mt8193-ckgen";
-	};
 
-	multibridge@0 {
-		compatible = "mediatek,multibridge";
-	};
 };
 
 /include/ "cust_eint.dtsi"
