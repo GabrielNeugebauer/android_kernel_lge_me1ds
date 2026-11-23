@@ -309,7 +309,8 @@ int fts_ctpm_fw_upgrade(struct i2c_client *client, u8 *pbt_buf,
 	u8 bt_ecc;
     u8 delay_count = 0;
 
-	msg_dma_alloct();
+	if (msg_dma_alloct(&client->dev))
+		return -ENOMEM;
 	if(pbt_buf[0] != 0x02)
 	{
 		TOUCH_LOG("FW first byte is not 0x02. so it is invalid \n");

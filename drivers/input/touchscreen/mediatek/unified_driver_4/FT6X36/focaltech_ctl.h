@@ -21,7 +21,7 @@ typedef struct ft_rw_i2c_queue
 	int queuenum;
 }*pft_rw_i2c_queue;
 
-void msg_dma_alloct(void);
+int msg_dma_alloct(struct device *dev);
 void msg_dma_release(void);
 int ft_rw_iic_drv_init(struct i2c_client *client);
 void  ft_rw_iic_drv_exit(void);
