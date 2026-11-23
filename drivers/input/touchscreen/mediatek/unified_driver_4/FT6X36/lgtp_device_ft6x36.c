@@ -48,7 +48,8 @@
 * Variables
 ****************************************************************************/
 #if defined( TOUCH_MODEL_E1)
-static const char defaultFirmware[] = "focaltech/e1/FT6x36_LGE_E1_Ver0x16_20151203_app.bin";
+/* same image the stock LG K130 kernel ships and the IC already runs (0x22) */
+static const char defaultFirmware[] = "focaltech/e1/FT6x36_LGE_E1_Ver0x22_20160106_app.bin";
 #endif
 
 static struct focaltech_ts_data *ts = NULL;
