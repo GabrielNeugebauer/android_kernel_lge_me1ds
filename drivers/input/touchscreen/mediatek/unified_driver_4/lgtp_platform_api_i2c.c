@@ -47,7 +47,9 @@
 ****************************************************************************/
 #if defined ( TOUCH_PLATFORM_MTK )
 static u8* I2CDMABuf_va = NULL;
-static u32 I2CDMABuf_pa = NULL;
+static dma_addr_t I2CDMABuf_pa;
+/* MTK I2C takes the DMA bus address in place of the buffer pointer */
+#define I2C_DMA_BUF ((u8 *)(uintptr_t)I2CDMABuf_pa)
 #endif
 
 static struct i2c_client *pClient = NULL;
@@ -66,9 +68,12 @@ static struct i2c_client *pClient = NULL;
 * Local Functions
 ****************************************************************************/
 #if defined ( TOUCH_PLATFORM_MTK )
-static int dma_allocation(void)
+static int dma_allocation(struct device *dev)
 {
-	I2CDMABuf_va = (u8*)dma_alloc_coherent(NULL, 4096, &I2CDMABuf_pa, GFP_KERNEL);
+	/* arm64 has no DMA ops for a NULL device; allocate against the client */
+	if (!dev->coherent_dma_mask)
+		dev->coherent_dma_mask = DMA_BIT_MASK(32);
+	I2CDMABuf_va = (u8*)dma_alloc_coherent(dev, 4096, &I2CDMABuf_pa, GFP_KERNEL);
 	if( I2CDMABuf_va == NULL ) {
 		TOUCH_ERR("fail to allocate DMA\n");
 		return TOUCH_FAIL;
@@ -93,7 +98,7 @@ static int i2c_dma_write(struct i2c_client *client, const uint8_t *buf, int len)
 	else {
 		client->addr = client->addr & I2C_MASK_FLAG | I2C_DMA_FLAG | I2C_ENEXT_FLAG;
 		client->timing = 400;
-		return i2c_master_send(client, I2CDMABuf_pa, len);
+		return i2c_master_send(client, I2C_DMA_BUF, len);
 	}
 }
 
@@ -110,7 +115,7 @@ static int i2c_dma_read(struct i2c_client *client, uint8_t *buf, int len)
 	else {
 		client->addr = client->addr & I2C_MASK_FLAG | I2C_DMA_FLAG | I2C_ENEXT_FLAG;
 		client->timing = 400;
-		ret = i2c_master_recv(client, I2CDMABuf_pa, len);
+		ret = i2c_master_recv(client, I2C_DMA_BUF, len);
 		if ( ret < 0 )
 			return ret;
 
@@ -123,7 +128,7 @@ static int i2c_dma_read(struct i2c_client *client, uint8_t *buf, int len)
 #else
 	client->addr = client->addr & I2C_MASK_FLAG | I2C_DMA_FLAG | I2C_ENEXT_FLAG;
 	client->timing = 200;
-	ret = i2c_master_recv(client, I2CDMABuf_pa, len);
+	ret = i2c_master_recv(client, I2C_DMA_BUF, len);
 	if ( ret < 0 )
 		return ret;
 
@@ -437,6 +442,10 @@ static int touch_i2c_probe(struct i2c_client *client, const struct i2c_device_id
 {
 	TOUCH_FUNC();
 
+#if defined ( TOUCH_PLATFORM_MTK )
+	if (!I2CDMABuf_va && dma_allocation(&client->dev) == TOUCH_FAIL)
+		return -ENOMEM;
+#endif
 	pClient = client;
 
 	return TOUCH_SUCCESS;
@@ -485,16 +494,6 @@ static int __init touch_i2c_init(void)
 
 	TOUCH_FUNC();
 
-	#if defined ( TOUCH_PLATFORM_MTK )
-	{
-		int ret = 0;
-		ret = dma_allocation();
-		if( ret == TOUCH_FAIL ) {
-			return TOUCH_FAIL;
-		}
-	}
-	#endif
-	
 	idx = TouchGetModuleIndex();
 	
 	#if defined ( TOUCH_PLATFORM_MTK )
