@@ -28,41 +28,53 @@ struct ft_rw_i2c_dev {
 struct ft_rw_i2c_dev *ft_rw_i2c_dev_tt;
 static struct class *fts_class;
 
-u8 *g_dma_buff_va = NULL;
-u8 *g_dma_buff_pa = NULL;
+#define FT_DMA_BUF_SIZE 4096
 
-void msg_dma_alloct()
+u8 *g_dma_buff_va = NULL;
+static dma_addr_t g_dma_buff_pa;
+static struct device *g_dma_dev;
+/* MTK I2C takes the DMA bus address in place of the buffer pointer */
+#define FT_DMA_BUF ((unsigned char *)(uintptr_t)g_dma_buff_pa)
+
+int msg_dma_alloct(struct device *dev)
 {
-	if(g_dma_buff_va != NULL) {
-		//TOUCH_LOG("[DMA]Already Allocate DMA I2C Buffer\n");
-		return;
-	}
-	g_dma_buff_va = (u8 *)dma_alloc_coherent(NULL, 128, &g_dma_buff_pa, GFP_KERNEL);//DMA size 4096 for customer
+	if(g_dma_buff_va != NULL)
+		return 0;
+	/* arm64 has no DMA ops for a NULL device; allocate against the client */
+	if (!dev->coherent_dma_mask)
+		dev->coherent_dma_mask = DMA_BIT_MASK(32);
+	g_dma_buff_va = (u8 *)dma_alloc_coherent(dev, FT_DMA_BUF_SIZE, &g_dma_buff_pa, GFP_KERNEL);
 	if(!g_dma_buff_va) {
 		TOUCH_LOG("[DMA][Error] Allocate DMA I2C Buffer failed!\n");
+		return -ENOMEM;
 	}
+	g_dma_dev = dev;
+	return 0;
 }
-void msg_dma_release()
+void msg_dma_release(void)
 {
 	if(g_dma_buff_va) {
-		dma_free_coherent(NULL, 128, g_dma_buff_va, g_dma_buff_pa);
+		dma_free_coherent(g_dma_dev, FT_DMA_BUF_SIZE, g_dma_buff_va, g_dma_buff_pa);
 		g_dma_buff_va = NULL;
-		g_dma_buff_pa = NULL;
+		g_dma_buff_pa = 0;
 		TOUCH_LOG("[DMA][release] Allocate DMA I2C Buffer release!\n");
 	}
 }
 
 int ft6x06_i2c_Read(struct i2c_client *client, char *writebuf, int writelen, char *readbuf, int readlen)
 {
-	int ret,i;
-	// for DMA I2c transfer
-	msg_dma_alloct();
+	int ret = 0, i;
+
+	if (msg_dma_alloct(&client->dev))
+		return -ENOMEM;
+	if (writelen > FT_DMA_BUF_SIZE || readlen > FT_DMA_BUF_SIZE)
+		return -EINVAL;
 	if(writelen!=0)
 	{
 		//DMA Write
 		memcpy(g_dma_buff_va, writebuf, writelen);
 		client->addr = client->addr & I2C_MASK_FLAG | I2C_DMA_FLAG;
-		if((ret=i2c_master_send(client, (unsigned char *)g_dma_buff_pa, writelen))!=writelen)
+		if((ret=i2c_master_send(client, FT_DMA_BUF, writelen))!=writelen)
 			//dev_err(&client->dev, "###%s i2c write len=%x,buffaddr=%x\n", __func__,ret,*g_dma_buff_pa);
 			TOUCH_LOG("i2c write failed\n");
 		client->addr = client->addr & I2C_MASK_FLAG &(~ I2C_DMA_FLAG);
@@ -75,7 +87,7 @@ int ft6x06_i2c_Read(struct i2c_client *client, char *writebuf, int writelen, cha
 	{
 		client->addr = client->addr & I2C_MASK_FLAG | I2C_DMA_FLAG;
 
-		ret = i2c_master_recv(client, (unsigned char *)g_dma_buff_pa, readlen);
+		ret = i2c_master_recv(client, FT_DMA_BUF, readlen);
 
 		memcpy(readbuf, g_dma_buff_va, readlen);
 
@@ -89,13 +101,17 @@ int ft6x06_i2c_Write(struct i2c_client *client, char *writebuf,
 {
 	int ret = 0;
 	int i = 0;
-	msg_dma_alloct();
+
+	if (msg_dma_alloct(&client->dev))
+		return -ENOMEM;
+	if (writelen > FT_DMA_BUF_SIZE)
+		return -EINVAL;
 	//client->addr = client->addr & I2C_MASK_FLAG;
 	//ret = i2c_master_send(client, writebuf, writelen);
 	memcpy(g_dma_buff_va, writebuf, writelen);
 
 	client->addr = client->addr & I2C_MASK_FLAG | I2C_DMA_FLAG;
-	if((ret=i2c_master_send(client, (unsigned char *)g_dma_buff_pa, writelen))!=writelen)
+	if((ret=i2c_master_send(client, FT_DMA_BUF, writelen))!=writelen)
 		//dev_err(&client->dev, "###%s i2c write len=%x,buffaddr=%x\n", __func__,ret,*g_dma_buff_pa);
 		TOUCH_LOG("i2c write failed\n");
 	client->addr = client->addr & I2C_MASK_FLAG &(~ I2C_DMA_FLAG);
